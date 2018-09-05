@@ -27,10 +27,15 @@ var am AudioManager //{"10.0.14.169:21403", nil, "20"} //set buffer size
 //flag for address to serve content
 var AmPTR = flag.String("am", "10.0.14.169:21403", "Set audioManager address/port")
 var mediaPTR = flag.String("media", "/Users/lucas/workspace/go/src/github.com/Max2Inc/SimpleAudio/media/201500.wav", "Set media path")
-var bufferPTR = flag.String("b", "10", "Set Buffer size in seconds")
+var bufferPTR = flag.String("b", "4", "Set Buffer size in seconds")
 var zonePTR = flag.String("z", "all", "Set audio zone")
 
-const chunkSize = 1024
+// const chunkSize = 35280
+const chunkSize = 44100 / 8 / 2 //(8 * 44100 * 2 * 0.05) / 8 // 1024 * 3
+
+const chunkSizeForHalf = (16 * 44100 * 2 * 0.1) / 8
+
+// const chunkSize = (16 * 44100 * 2 * 2) / 8
 
 type AudioManager struct {
 	Address string
@@ -63,6 +68,8 @@ func main() {
 	media = *mediaPTR
 	//create audiomanager with addres of AM and buffer specified
 	am = AudioManager{*AmPTR, nil, *bufferPTR}
+
+	log.Println(chunkSize)
 
 	//establish a new zone
 	z := Zone{*zonePTR, nil, nil, nil, nil, nil, nil}
