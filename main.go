@@ -26,13 +26,13 @@ var am AudioManager //{"10.0.14.169:21403", nil, "20"} //set buffer size
 
 //flag for address to serve content
 var AmPTR = flag.String("am", "10.0.14.169:21403", "Set audioManager address/port")
-var mediaPTR = flag.String("media", "/Users/lucas/workspace/go/src/github.com/Max2Inc/SimpleAudio/media/201500.wav", "Set media path")
+var mediaPTR = flag.String("media", "/media/song.wav", "Set media path")
 var bufferPTR = flag.String("b", "4", "Set Buffer size in seconds")
 var zonePTR = flag.String("z", "all", "Set audio zone")
 
 // const chunkSize = 35280
 const chunkSize = 44100 / 8 / 2 //(8 * 44100 * 2 * 0.05) / 8 // 1024 * 3
-
+// const chunkSize = 1024
 const chunkSizeForHalf = (16 * 44100 * 2 * 0.1) / 8
 
 // const chunkSize = (16 * 44100 * 2 * 2) / 8
