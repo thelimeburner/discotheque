@@ -104,6 +104,14 @@ func (z *Zone) play() {
 
 	status := false
 	b := make([]byte, chunkSize) // make a buffer to handle read
+	// bytesSent := 0
+	// _, err := strconv.Atoi(am.buffer)
+	// if err != nil {
+	// 	log.Println("Failed to convert buffer to string")
+	// 	return
+	// }
+
+	// threshold := (buf * sampleRate) / 2
 	for {
 		select {
 		case <-z.stop: //receive stop message, set status to false
@@ -126,7 +134,12 @@ func (z *Zone) play() {
 					return
 				}
 
-				z.ws.SendBinary(b)            // send bytes we read in.
+				z.ws.SendBinary(b) // send bytes we read in.
+				// // bytesSent += n
+				// if bytesSent >= threshold {
+				// 	bytesSent = 0
+				// 	time.Sleep(5 * time.Millisecond)
+				// }
 				log.Println("Sent bytes:", n) // print that we sent.
 				time.Sleep(5 * time.Millisecond)
 			}

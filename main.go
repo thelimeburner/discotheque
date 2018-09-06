@@ -11,12 +11,15 @@ package main
 import (
 	"bytes"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 
+	"github.com/faiface/beep"
+	"github.com/faiface/beep/wav"
 	"github.com/sacOO7/gowebsocket"
 )
 
@@ -31,7 +34,8 @@ var bufferPTR = flag.String("b", "4", "Set Buffer size in seconds")
 var zonePTR = flag.String("z", "all", "Set audio zone")
 
 // const chunkSize = 35280
-const chunkSize = 44100 / 8 / 2 //(8 * 44100 * 2 * 0.05) / 8 // 1024 * 3
+const sampleRate = 44100
+const chunkSize = sampleRate / 8 / 2 //(8 * 44100 * 2 * 0.05) / 8 // 1024 * 3
 
 const chunkSizeForHalf = (16 * 44100 * 2 * 0.1) / 8
 
@@ -82,7 +86,7 @@ func main() {
 
 	//set the buffer on the audiomanager
 	am.setBuffer()
-
+	//readWav(media)
 	//open the clip and return the file pointer
 	z.clip = openClip(media)
 
@@ -159,4 +163,28 @@ func (am *AudioManager) setBuffer() bool {
 	}
 
 	return false
+}
+
+func printInfo(f beep.Format) {
+	fmt.Println("SampleRate: ", f.SampleRate)
+	fmt.Println("NumChannels: ", f.NumChannels)
+	fmt.Println("Precision: ", f.NumChannels)
+}
+
+func readWav(fname string) {
+	// Open first sample File
+	f, err := os.Open(media)
+	// Check for errors when opening the file
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+	// Decode the .mp3 File, if you have a .wav file, use wav.Decode(f)
+	_, format, err := wav.Decode(f)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	printInfo(format)
+
 }

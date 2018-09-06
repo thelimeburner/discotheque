@@ -1,6 +1,6 @@
-all: clean build test
+all: clean build test2
 
-2: clean build test2
+2: clean build test
 
 build:
 	go build 
@@ -9,7 +9,7 @@ test:
 	./discotheque 
 
 test2:
-	./discotheque -media /Users/lucas/workspace/go/src/github.com/Max2Inc/SimpleAudio/media/309502.wav
+	./discotheque -media /Users/lucas/workspace/go/src/github.com/Max2Inc/SimpleAudio/media/stereo.wav
 
 clean: 
 	rm -rf discotheque
