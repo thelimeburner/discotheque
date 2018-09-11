@@ -103,6 +103,7 @@ func (z *Zone) init() {
 func (z *Zone) play() {
 
 	status := false
+	b := make([]byte, chunkSize) // make a buffer to handle read
 	for {
 		select {
 		case <-z.stop: //receive stop message, set status to false
@@ -117,17 +118,18 @@ func (z *Zone) play() {
 		default: //received no messages continue as normal
 
 			if status { // if true we are able to stream.
-				b := make([]byte, chunkSize) // make a buffer to handle read
-				_, err := z.clip.Read(b)     // read into buffer
-				if err != nil {              // if failed to readin we are at end of file so exit.
+
+				n, err := z.clip.Read(b) // read into buffer
+				if err != nil {          // if failed to readin we are at end of file so exit.
 					log.Println(err.Error())
 					log.Println("End of file!")
+					stopped <- true
 					return
 				}
 
-				z.ws.SendBinary(b) // send bytes we read in.
-				//log.Println("Sent bytes:", n) // print that we sent.
-				//time.Sleep(10 * time.Millisecond)
+				z.ws.SendBinary(b)                                                                                               // send bytes we read in.
+				log.Printf("Sent bytes: %d. First byte: %d Middle Byte: %d Last Byte: %d", n, b[0], b[chunkSize/2], b[len(b)-2]) // print that we sent.
+				time.Sleep(5 * time.Millisecond)
 			}
 		}
 	}
