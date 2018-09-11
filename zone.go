@@ -123,7 +123,8 @@ func (z *Zone) play() {
 				if err != nil {          // if failed to readin we are at end of file so exit.
 					log.Println(err.Error())
 					log.Println("End of file!")
-					os.Exit(0)
+					stopped <- true
+					return
 				}
 
 				z.ws.SendBinary(b)                                                                                               // send bytes we read in.

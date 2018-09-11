@@ -16,6 +16,12 @@ test3:
 	./discotheque -media charlieBoy.wav -b 20
 
 
+single: clean build
+	./discotheque -media clips/killed.wav -am am:21403 -b 4
+
+list: clean build
+	./discotheque -f cliplist.txt -am am:21403 -b 4
+
 clean: 
 	rm -rf discotheque
 kill:

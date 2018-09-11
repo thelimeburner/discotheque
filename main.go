@@ -9,6 +9,7 @@ or to see help options
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"flag"
 	"io/ioutil"
@@ -29,6 +30,7 @@ var AmPTR = flag.String("am", "10.0.14.169:21403", "Set audioManager address/por
 var mediaPTR = flag.String("media", "/media/song.wav", "Set media path")
 var bufferPTR = flag.String("b", "4", "Set Buffer size in seconds")
 var zonePTR = flag.String("z", "all", "Set audio zone")
+var filePTR = flag.String("f", "", "Set file to play from")
 
 // const chunkSize = 35280
 const chunkSize = 44100 / 8 / 2 //(8 * 44100 * 2 * 0.05) / 8 // 1024 * 3
@@ -53,6 +55,8 @@ type Zone struct {
 	bytes []byte
 }
 
+var stopped chan bool
+
 func printConfig(z Zone) {
 	log.Println("Current Config:")
 	log.Println("\tAudioManager: ", am.Address)
@@ -61,28 +65,46 @@ func printConfig(z Zone) {
 	log.Println("\tMedia File: ", media)
 }
 
-func main() {
+func readClips(fname string) []string {
+	//open file for reading
+	file, err := os.Open(fname)
+	if err != nil {
+		log.Println("Error opening file: ", err.Error())
+		os.Exit(1)
+	}
+	defer file.Close()
 
-	//parse flag commands
-	flag.Parse()
-	media = *mediaPTR
-	//create audiomanager with addres of AM and buffer specified
-	am = AudioManager{*AmPTR, nil, *bufferPTR}
+	var lines []string
 
-	log.Println(chunkSize)
+	//open scanner for and read into lines
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
 
-	//establish a new zone
-	z := Zone{*zonePTR, nil, nil, nil, nil, nil, nil}
-	printConfig(z)
-	//configure interrupts so we can close the program
-	z.close = make(chan os.Signal, 1)
-	closer := make(chan os.Signal, 1)
-	signal.Notify(z.close, os.Interrupt)
-	signal.Notify(closer, os.Interrupt)
+	return lines
+}
 
-	//set the buffer on the audiomanager
-	am.setBuffer()
+//play clips from a list in a file
+func (z *Zone) playFileList(fname string) {
+	clips := readClips(fname)
+	//initialize the zone and its websocket options
+	z.init()
+	for _, cl := range clips {
+		log.Println("Now playing clip: " + cl)
+		//open the clip and return the file pointer
+		z.clip = openClip(cl)
+		//start player, note doesnt play until connected and receive start message
+		go z.play()
+		z.start <- z.reconnect()
+		//establish websocket connections
+		z.reconnect()
+		<-stopped
+	}
 
+}
+
+func (z *Zone) playSingleSong(fname string) {
 	//open the clip and return the file pointer
 	z.clip = openClip(media)
 
@@ -104,6 +126,40 @@ func main() {
 			continue
 		}
 
+	}
+}
+
+var closer chan os.Signal
+
+func main() {
+
+	//parse flag commands
+	flag.Parse()
+	media = *mediaPTR
+
+	//create audiomanager with addres of AM and buffer specified
+	am = AudioManager{*AmPTR, nil, *bufferPTR}
+
+	log.Println(chunkSize)
+
+	//establish a new zone
+	z := Zone{*zonePTR, nil, nil, nil, nil, nil, nil}
+	printConfig(z)
+	//configure interrupts so we can close the program
+	z.close = make(chan os.Signal, 1)
+	closer = make(chan os.Signal, 1)
+	stopped = make(chan bool, 1)
+	signal.Notify(z.close, os.Interrupt)
+	signal.Notify(closer, os.Interrupt)
+
+	//set the buffer on the audiomanager
+	am.setBuffer()
+	if *filePTR == "" {
+		log.Println("Playing single clip: " + media)
+		z.playSingleSong(media)
+	} else {
+		log.Println("Playing list of clips from : " + *filePTR)
+		z.playFileList(*filePTR)
 	}
 
 }
