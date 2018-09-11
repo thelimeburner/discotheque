@@ -1,0 +1,4 @@
+./clips/inigo.wav
+./clips/sicily.wav
+./clips/wedding.wav
+./clips/gingerbread.wav
