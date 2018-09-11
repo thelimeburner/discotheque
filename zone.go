@@ -123,11 +123,11 @@ func (z *Zone) play() {
 				if err != nil {          // if failed to readin we are at end of file so exit.
 					log.Println(err.Error())
 					log.Println("End of file!")
-					return
+					os.Exit(0)
 				}
 
-				z.ws.SendBinary(b)            // send bytes we read in.
-				log.Println("Sent bytes:", n) // print that we sent.
+				z.ws.SendBinary(b)                                                                                               // send bytes we read in.
+				log.Printf("Sent bytes: %d. First byte: %d Middle Byte: %d Last Byte: %d", n, b[0], b[chunkSize/2], b[len(b)-2]) // print that we sent.
 				time.Sleep(5 * time.Millisecond)
 			}
 		}
